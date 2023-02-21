@@ -1,16 +1,22 @@
+"""
+    Created on: 2023-01-10
+    Author: Yang Fei
+"""
+
 import os
 import json
 import pickle
 import pandas as pd
 
+# from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 # from tqdm import tqdm
 
-input_file = "../data_demo/test.txt"
-modified_file = "../data_demo/modified_input.txt"
-output_file = "../data_demo/output_test.txt"
+DST = "../data_demo"
 
-SRC = output_file
-DST = "../data_demo/rassigned.txt"
+input_file = DST + "/input.txt"
+modified_file = DST + "/modified.txt"  # delete blank line
+output_file = DST + "/output.txt"  # re-organize the file
+reassign_file = DST + "/reassigned.txt"  # give the ip address new number
 
 
 # delete the blank line in the dataset to guarantee the function works
@@ -45,8 +51,8 @@ def split():
     json_keyword()
 
     # Re-assign the ip with number
-    f_in = open(SRC, 'r')
-    f_out = open(DST, 'w+')  # + str(cur_time) + '.txt'
+    f_in = open(output_file, 'r')
+    f_out = open(reassign_file, 'w+')  # + str(cur_time) + '.txt'
 
     line = f_in.readline()  # Skip headers
     line = f_in.readline()
@@ -80,33 +86,41 @@ def split():
     for (k, v) in nmap.items():
         nmap_rev[v] = k
 
-    with open(DST + 'nmap.pkl', 'wb+') as f:
+    with open(DST + '/nmap.pkl', 'wb+') as f:
         pickle.dump(nmap_rev, f, protocol=pickle.HIGHEST_PROTOCOL)
 
     # Calculate some key information about the data
     def calculate(target_file):
+        df = pd.read_csv(target_file, header=None)
         # Basic information about the file
         print("The name of this file is:", str(target_file))
         print("=====================================================================")
         total_edge = 0
         total_node = 0
+        edge_without_port = 0
         with open(target_file, 'r') as tmp:
             for edge in tmp:
                 total_edge += 1
-                columns = edge.split()
+                columns = edge.split(',')
                 if len(columns) >= 3:
-                    number_2 = float(columns[1])
-                    number_3 = float(columns[2])
+                    number_2 = int(columns[1])
+                    number_3 = int(columns[2])
                     if number_2 > total_node:
                         total_node = number_2
                     if number_3 > total_node:
                         total_node = number_3
+                    if (columns[3] == "") or (columns[4] == ""):
+                        edge_without_port += 1
         print("Total number of edges:", total_edge)
-        print("Total number of node:", total_node)
+        print("Total number of nodes:", total_node)
+        total_port = len(set(df[3].tolist() + df[4].tolist()))
+        print("Total number of ports:", total_port)
+        print("=====================================================================")
+        normal_percent = (1-edge_without_port/total_edge)*100
+        print('Normal edges percent: %f%%:' % normal_percent)
         print("=====================================================================")
 
         # calculate the Node egress and ingress
-        df = pd.read_csv(target_file, header=None)
         counts_in = df[1].value_counts()
         counts_out = df[2].value_counts()
 
@@ -122,7 +136,7 @@ def split():
         print("The top ten IPs with the largest egress:\n", top_out_ip)
         print("=====================================================================")
 
-    calculate(DST)
+    calculate(reassign_file)
 
 
 if __name__ == '__main__':
