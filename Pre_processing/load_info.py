@@ -192,29 +192,6 @@ def calculate(target_file, nmap_rev):
     plt.show()
     fig.savefig(DST + '/' + str(os.path.splitext(target_file)[0]) + "_boxplot.png")
 
-    # # Filter the data to only include those nodes
-    # filtered_df = df[df[1].isin(top_in_nodes) | df[2].isin(top_out_nodes)]
-    #
-    # # Create a list of data to plot
-    # data = []
-    # for node in top_in_nodes:
-    #     node_data = filtered_df[filtered_df[1] == node][3].tolist()
-    #     data.append(node_data)
-    # for node in top_out_nodes:
-    #     node_data = filtered_df[filtered_df[2] == node][4].tolist()
-    #     data.append(node_data)
-    #
-    # # Create a boxplot showing the distribution of node ingress and egress
-    # fig, ax = plt.subplots()
-    # ax.boxplot(data, labels=top_in_nodes + top_out_nodes)
-    #
-    # # Set the axis labels
-    # ax.set_xlabel('Node')
-    # ax.set_ylabel('Value')
-    # ax.set_title('Distribution of Node Ingress and Egress')
-    #
-    # # Show the plot
-    # plt.show()
 
 if __name__ == '__main__':
     split()
