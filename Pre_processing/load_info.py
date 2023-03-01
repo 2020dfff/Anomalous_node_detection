@@ -7,7 +7,10 @@ import os
 import json
 import pickle
 import pandas as pd
+from wordcloud import WordCloud
 import matplotlib.pyplot as plt
+import numpy as np
+from PIL import Image
 
 # from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 # from tqdm import tqdm
@@ -30,7 +33,7 @@ def preprocess(infile, outfile1, outfile2):
         lines = file.readlines()
     lines = [line for line in lines if line.strip()]
     with open(outfile1, "w") as f_edge_out, \
-         open(outfile2, "w") as f_pair_out:
+            open(outfile2, "w") as f_pair_out:
         f_edge_out.write("proto_name,srcip,dstip,srcport,dstport\n")
         f_pair_out.write("proto_name,srcip,dstip,srcport,dstport\n")
 
@@ -60,7 +63,11 @@ def preprocess(infile, outfile1, outfile2):
 
 def split():
     # do the initialization job to pick out key information
-    preprocess(input_file, unique_edges_file, unique_pairs_file,)
+    if not os.path.exists(DST + "/unique_edges"):
+        os.makedirs(DST + "/unique_edges")
+    if not os.path.exists(DST + "/unique_pairs"):
+        os.makedirs(DST + "/unique_pairs")
+    preprocess(input_file, unique_edges_file, unique_pairs_file)
 
     # Re-assign the ip with number
     nmap = {}
@@ -114,7 +121,8 @@ def split():
 
     print("For unique pairs:\n", file=log)
     calculate(reassign_pairs_file, nmap_rev)
-    print("***************************************************************************************************\n", file=log)
+    print("***************************************************************************************************\n",
+          file=log)
     print("For unique edges:\n", file=log)
     calculate(reassign_edges_file, nmap_rev)
 
@@ -123,13 +131,13 @@ def split():
 def calculate(target_file, nmap_rev):
     df = pd.read_csv(target_file, header=None)
     # Basic information about the file
-    print("The name of this file is: %s\n=====================================================================" % str(target_file), file=log)
+    print("The name of this file is: %s\n=====================================================================" % str(
+        target_file), file=log)
     total_edge = 0
     total_node = 0
     edge_without_src_port = 0
     edge_without_dst_port = 0
     edge_without_port = 0
-    self_loop = 0
     with open(target_file, 'r') as tmp:
         for edge in tmp:
             total_edge += 1
@@ -147,16 +155,24 @@ def calculate(target_file, nmap_rev):
                     edge_without_dst_port += 1
                 if (columns[3] == "") or (columns[4] == '\n'):
                     edge_without_port += 1
-                if columns[1] == columns[2]:
-                    self_loop += 1
-    print("Total number of edges: %s\n=====================================================================" % total_edge, file=log)
-    print("Total number of nodes: %s\n=====================================================================" % total_node, file=log)
+    print(
+        "Total number of edges: %s\n=====================================================================" % total_edge,
+        file=log)
+    print(
+        "Total number of nodes: %s\n=====================================================================" % total_node,
+        file=log)
     total_port = len(set(df[3].tolist() + df[4].tolist()))
-    print("Total number of ports: %s\n=====================================================================" % total_port, file=log)
-    normal_percent = (1-edge_without_port/total_edge)*100
-    print("edge_without_src_port: %s, edge_without_dst_port: %s, edge_without_port: %s" % (edge_without_src_port, edge_without_dst_port, edge_without_port), file=log)
-    print('Normal edges percent: %f%%\n=====================================================================' % normal_percent, file=log)
-    print("Number of self-loop is: %f\n=====================================================================" % self_loop, file=log)
+    print(
+        "Total number of ports: %s\n=====================================================================" % total_port,
+        file=log)
+    normal_percent = (1 - edge_without_port / total_edge) * 100
+    print("edge_without_src_port: %s, edge_without_dst_port: %s, edge_without_port: %s"
+          "=====================================================================" % (edge_without_src_port,
+                                                                                     edge_without_dst_port,
+                                                                                     edge_without_port), file=log)
+    print(
+        'Normal edges percent: %f%%\n=====================================================================' % normal_percent,
+        file=log)
 
     # calculate the Node egress and ingress
     counts_in = df[1].value_counts()
@@ -172,23 +188,41 @@ def calculate(target_file, nmap_rev):
     top_out_nodes = counts_out.head(10).index.tolist()
     top_out_ip = [nmap_rev[node] for node in top_out_nodes]
     print("The top ten IPs with the largest egress:\n", top_out_ip, file=log)
+    print("=====================================================================", file=log)
     print("done!")
 
-    # Combine the data for plotting
-    data = [counts_in.values, counts_out.values]
+    # check whether the abnormal ports origin from one or multiple fixed nodes
+    missing_rows = df[df[3].isnull() | df[4].isnull()]
+    key_nodes = missing_rows[1].unique()
+    counts = missing_rows[1].value_counts()
 
-    # Set up the plot
+    if len(key_nodes) == 1:
+        print(f"Abnormal ports generate from a single unique ip\n: {nmap_rev[key_nodes[0]]}", file=log)
+    else:
+        key_ips = [nmap_rev[node] for node in key_nodes]
+        print("Abnormal ports generate from multiple unique ips:\n", key_ips, file=log)
+
+        # Plot the wordcloud of key_ips results in abnormal ports
+        ip_addresses = [nmap_rev[node] for node in counts.index.tolist()]
+        ip_counts = counts.values.tolist()
+        print(list(zip(ip_addresses, ip_counts)))
+        wc = WordCloud(background_color=None, mode='RGBA', max_words=100, width=400, height=400, min_font_size=5, max_font_size=150,
+                       collocations=False, scale=20, margin=2, prefer_horizontal=1, mask=np.array(Image.open('1.png')))
+        ip_count_dict = dict(zip(ip_addresses, ip_counts))
+        wc.generate_from_frequencies(ip_count_dict)
+        plt.figure(figsize=(10, 5))
+        plt.imshow(wc, interpolation='bilinear')
+        plt.axis('off')
+        wc.to_file(DST + '/' + str(os.path.splitext(target_file)[0]) + "_wordcloud.png")
+        plt.show()
+
+    # Plot and show the boxplot in each situation
+    data = [counts_in.values, counts_out.values]
     fig, ax = plt.subplots(figsize=(10, 6))
     ax.boxplot(data)
-
-    # Set the x-label and y-label
     ax.set_xlabel('Data Type')
     ax.set_ylabel('Number of Packets')
-
-    # Set the tick labels
     ax.set_xticklabels(['Ingress', 'Egress'])
-
-    # Show the plot
     plt.show()
     fig.savefig(DST + '/' + str(os.path.splitext(target_file)[0]) + "_boxplot.png")
 
