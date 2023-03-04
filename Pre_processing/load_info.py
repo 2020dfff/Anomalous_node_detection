@@ -18,6 +18,7 @@ from PIL import Image
 DST = "../data_demo"
 
 input_file = DST + "/input.txt"
+abnormal_file = DST + "/without_port.txt"
 unique_edges_file = DST + "/unique_edges/unique_edges_file.txt"
 unique_pairs_file = DST + "/unique_pairs/unique_pairs_file.txt"  # re-organize the file, also make edge unique
 reassign_edges_file = DST + "/unique_edges/reassigned_edges.txt"
@@ -25,7 +26,7 @@ reassign_pairs_file = DST + "/unique_pairs/reassigned_pairs.txt"  # give the ip 
 log = open(DST + '/info.txt', mode='w', encoding='utf-8')
 
 
-def preprocess(infile, outfile1, outfile2):
+def preprocess(infile, outfile1, outfile2, origin_out):
     # delete the blank line in the dataset to guarantee the function works
     edges = set()
     pairs = set()
@@ -33,19 +34,23 @@ def preprocess(infile, outfile1, outfile2):
         lines = file.readlines()
     lines = [line for line in lines if line.strip()]
     with open(outfile1, "w") as f_edge_out, \
-            open(outfile2, "w") as f_pair_out:
+            open(outfile2, "w") as f_pair_out, \
+            open(origin_out, "w") as origin_data_out:
         f_edge_out.write("proto_name,srcip,dstip,srcport,dstport\n")
         f_pair_out.write("proto_name,srcip,dstip,srcport,dstport\n")
 
         # extract edges and pairs from the data
         for line in lines:
-            json_line = json.loads(line)
+            json_line = json.loads(f"{line}\n")
 
             proto_name = json_line.get("_source", {}).get("proto_name", "")
             srcip = json_line.get("_source", {}).get("srcip", "")
             dstip = json_line.get("_source", {}).get("dstip", "")
             srcport = json_line.get("_source", {}).get("srcport", "")
             dstport = json_line.get("_source", {}).get("dstport", "")
+
+            if (srcport == "") or (dstport == ""):
+                origin_data_out.write(line)
 
             # add unique edges and pairs to sets
             edge = (srcip, dstip, srcport, dstport)
@@ -67,7 +72,7 @@ def split():
         os.makedirs(DST + "/unique_edges")
     if not os.path.exists(DST + "/unique_pairs"):
         os.makedirs(DST + "/unique_pairs")
-    preprocess(input_file, unique_edges_file, unique_pairs_file)
+    preprocess(input_file, unique_edges_file, unique_pairs_file, abnormal_file)
 
     # Re-assign the ip with number
     nmap = {}
@@ -166,7 +171,7 @@ def calculate(target_file, nmap_rev):
         "Total number of ports: %s\n=====================================================================" % total_port,
         file=log)
     normal_percent = (1 - edge_without_port / total_edge) * 100
-    print("edge_without_src_port: %s, edge_without_dst_port: %s, edge_without_port: %s"
+    print("edge_without_src_port: %s, edge_without_dst_port: %s, edge_without_port: %s\n"
           "=====================================================================" % (edge_without_src_port,
                                                                                      edge_without_dst_port,
                                                                                      edge_without_port), file=log)
@@ -206,7 +211,8 @@ def calculate(target_file, nmap_rev):
         ip_addresses = [nmap_rev[node] for node in counts.index.tolist()]
         ip_counts = counts.values.tolist()
         print(list(zip(ip_addresses, ip_counts)))
-        wc = WordCloud(background_color=None, mode='RGBA', max_words=100, width=400, height=400, min_font_size=5, max_font_size=150,
+        wc = WordCloud(background_color=None, mode='RGBA', max_words=100, width=400, height=400, min_font_size=5,
+                       max_font_size=150,
                        collocations=False, scale=20, margin=2, prefer_horizontal=1, mask=np.array(Image.open('1.png')))
         ip_count_dict = dict(zip(ip_addresses, ip_counts))
         wc.generate_from_frequencies(ip_count_dict)
