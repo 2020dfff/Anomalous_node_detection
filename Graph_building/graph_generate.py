@@ -45,11 +45,33 @@ is_directed = nx.is_directed(DG)
 print("is_weighted:", is_weighted, ", is_directed:", is_directed)
 
 # get top 10 nodes by degree centrality
-print("Top 10 nodes by degree centrality\n")
+print("Top 10 nodes by degree centrality:\n")
 dc = nx.degree_centrality(DG)
 top_nodes = sorted(dc.items(), key=lambda x: x[1], reverse=True)[:10]
 for node, dc in top_nodes:
     print(f"{node}: {dc}")
+print("===============================================")
+
+# largest connected component
+components = nx.connected_components(G)
+largest_component = max(components, key=len)
+H = DG.subgraph(largest_component)
+
+# compute betweenness centrality
+print("Top 10 nodes by betweenness centrality:\n")
+centrality = nx.betweenness_centrality(H, k=10, endpoints=True)
+top_centrals = sorted(centrality.items(), key=lambda x: x[1], reverse=True)[:10]
+for node, centrality in top_centrals:
+    print(f"{node}: {centrality}")
+print("===============================================")
+
+# compute closeness centrality
+print("Top 10 nodes by closeness centrality:\n")
+closeness = nx.closeness_centrality(H)
+top_closes = sorted(closeness.items(), key=lambda x: x[1], reverse=True)[:10]
+for node, closeness in top_closes:
+    print(f"{node}: {closeness}")
+print("===============================================")
 
 # Remove nodes with degree less than x
 low_degree_nodes = [node for node, degree in dict(DG.degree()).items() if degree < 300]
