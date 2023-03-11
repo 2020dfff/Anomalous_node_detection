@@ -27,6 +27,8 @@ with open(edges_input, newline='') as f:
 
 # Print out edges list
 # print(edges)
+# er = nx.erdos_renyi_graph(100, 0.15)
+# K_5 = nx.complete_graph(5)
 
 # create a new directed graph
 DG = nx.DiGraph()
@@ -59,7 +61,7 @@ print("===============================================")
 
 # compute degree centrality
 print("Top 10 nodes by degree centrality:\n")
-dc = nx.degree_centrality(DG)
+dc = nx.degree_centrality(H)
 top_nodes = sorted(dc.items(), key=lambda x: x[1], reverse=True)[:10]
 for node, dc in top_nodes:
     print(f"{node}: {dc}")
