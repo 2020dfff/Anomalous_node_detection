@@ -8,7 +8,6 @@ unique_edges_DST = "../data_demo/unique_edges"
 unique_pairs_DST = "../data_demo/unique_pairs"
 edges_input = unique_edges_DST + "/unique_edges_file.txt"
 pairs_input = unique_pairs_DST + "/unique_pairs_file.txt"
-log = open(unique_edges_DST + '/info.txt', mode='w', encoding='utf-8')
 
 edges = []
 closeness = {}
@@ -52,7 +51,7 @@ def basic_info():
 
 
 def compute_degree_centrality(g):
-    print("Computing degree centrality...", file=log)
+    print("Computing degree centrality...")
     dc = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node, degree in nx.degree_centrality(g).items():
@@ -61,13 +60,13 @@ def compute_degree_centrality(g):
     print("Top 10 nodes by degree centrality:\n")  # print top 10 nodes by degree centrality
     top_nodes = sorted(dc.items(), key=lambda x: x[1], reverse=True)[:10]
     for node, dc in top_nodes:
-        print(f"{node}: {dc}", file=log)
-    print("===============================================", file=log)
+        print(f"{node}: {dc}")
+    print("===============================================")
     return dc
 
 
 def compute_betweenness_centrality(g):
-    print("Computing betweenness centrality...", file=log)
+    print("Computing betweenness centrality...")
     bc = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node, centrality in nx.betweenness_centrality(g, k=10, endpoints=True).items():
@@ -76,8 +75,8 @@ def compute_betweenness_centrality(g):
     print("Top 10 nodes by betweenness centrality:\n")  # print top 10 nodes by betweenness centrality
     top_centrals = sorted(bc.items(), key=lambda x: x[1], reverse=True)[:10]
     for node, bc in top_centrals:
-        print(f"{node}: {bc}", file=log)
-    print("===============================================", file=log)
+        print(f"{node}: {bc}")
+    print("===============================================")
     return bc
 
 
@@ -96,7 +95,7 @@ def bc_dc_boxplot(g):
 
 
 def compute_closeness_centrality(g):
-    print("Computing closeness centrality...", file=log)
+    print("Computing closeness centrality...")
     closeness = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node in g.nodes():
@@ -106,7 +105,7 @@ def compute_closeness_centrality(g):
 
 
 def compute_soc(g):
-    print("Computing second order centrality...", file=log)
+    print("Computing second order centrality...")
     soc = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node in g.nodes():
@@ -116,7 +115,7 @@ def compute_soc(g):
 
 
 def compute_ecc(g):
-    print("Computing eccentricity...", file=log)
+    print("Computing eccentricity...")
     ecc = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node in g.nodes():
@@ -126,7 +125,7 @@ def compute_ecc(g):
 
 
 def compute_radius_center(g):
-    print("Computing radius and center...", file=log)
+    print("Computing radius and center...")
     with tqdm(total=2) as pbar:
         radius = nx.radius(g)
         pbar.update(1)
@@ -145,14 +144,59 @@ if __name__ == '__main__':
     # draw a boxplot with bc and dc
     bc_dc_boxplot(G)
 
+    # # execute functions in parallel
+    # with Pool(cpu_count()) as p:
+    #     closeness = p.apply_async(compute_closeness_centrality, args=(H,))
+    #     soc = p.apply_async(compute_soc, args=(H,))
+    #     ecc = p.apply_async(compute_ecc, args=(H,))
+    #     radius_center = p.apply_async(compute_radius_center, args=(H,))
+    #
+    #     # display progress bar
+    #     total = 4
+    #     with tqdm(total=total) as pbar:
+    #         while not (closeness.ready() and soc.ready() and ecc.ready() and radius_center.ready()):
+    #             if closeness.ready():
+    #                 pbar.update(1)
+    #                 closeness = closeness.get()
+    #             if soc.ready():
+    #                 pbar.update(1)
+    #                 soc = soc.get()
+    #             if ecc.ready():
+    #                 pbar.update(1)
+    #                 ecc = ecc.get()
+    #             if radius_center.ready():
+    #                 pbar.update(1)
+    #                 radius, center = radius_center.get()
+    #
+    # print("Top 10 nodes by closeness centrality:\n")  # print top 10 nodes by closeness centrality
+    # top_closes = sorted(closeness.items(), key=lambda x: x[1], reverse=True)[:10]
+    # for node, closeness in top_closes:
+    #     print(f"{node}: {closeness}")
+    # print("===============================================")
+    #
+    # print("Top 10 nodes by second order centrality:\n")  # print top 10 nodes by second order centrality
+    # top_socs = sorted(soc.items(), key=lambda x: x[1], reverse=True)[:10]
+    # for node, soc in top_socs:
+    #     print(f"{node}: {soc}")
+    # print("===============================================")
+    #
+    # print("Top 10 nodes by eccentricity:\n")  # print top 10 nodes by second order centrality
+    # top_eccs = sorted(ecc.items(), key=lambda x: x[1], reverse=True)[:10]
+    # for node, ecc in top_eccs:
+    #     print(f"{node}: {ecc}")
+    # print("===============================================")
+    #
+    # print("The radius of the graph is:", radius)
+    # print("The center of the graph is", center)
+
     # compute closeness centrality in parallel
     with Pool(cpu_count()) as p:
         closeness = p.apply(compute_closeness_centrality, args=(H,))
     print("Top 10 nodes by closeness centrality:\n")  # print top 10 nodes by closeness centrality
     top_closes = sorted(closeness.items(), key=lambda x: x[1], reverse=True)[:10]
     for node, closeness in top_closes:
-        print(f"{node}: {closeness}", file=log)
-    print("===============================================", file=log)
+        print(f"{node}: {closeness}")
+    print("===============================================")
 
     # compute second order centrality in parallel
     with Pool(cpu_count()) as p:
@@ -160,8 +204,8 @@ if __name__ == '__main__':
     print("Top 10 nodes by second order centrality:\n")  # print top 10 nodes by second order centrality
     top_socs = sorted(soc.items(), key=lambda x: x[1], reverse=True)[:10]
     for node, soc in top_socs:
-        print(f"{node}: {soc}", file=log)
-    print("===============================================", file=log)
+        print(f"{node}: {soc}")
+    print("===============================================")
 
     # compute eccentricity
     with Pool(cpu_count()) as p:
@@ -169,20 +213,11 @@ if __name__ == '__main__':
     print("Top 10 nodes by eccentricity:\n")  # print top 10 nodes by second order centrality
     top_eccs = sorted(ecc.items(), key=lambda x: x[1], reverse=True)[:10]
     for node, ecc in top_eccs:
-        print(f"{node}: {ecc}", file=log)
-    print("===============================================", file=log)
+        print(f"{node}: {ecc}")
+    print("===============================================")
 
     # compute radius and center
     with Pool(cpu_count()) as p:
         radius, center = p.apply(compute_radius_center, args=(H,))
-    print("The radius of the graph is:", radius, file=log)
-    print("The center of the graph is", center, file=log)
-
-    # Remove nodes with degree less than x
-    # low_degree_nodes = [node for node, degree in dict(DG.degree()).items() if degree < 300]
-    # DG.remove_nodes_from(low_degree_nodes)
-    #
-    # # draw the graph
-    # nx.draw(DG, with_labels=True)
-    # plt.savefig("path.png")
-    print("done")
+    print("The radius of the graph is:", radius)
+    print("The center of the graph is", center)

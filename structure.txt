@@ -1,0 +1,33 @@
+
+©¦ Structure 03/10/2023
+©¦
+©¦          
+©À©¤Data_demo
+©¦  ©¦  info.txt
+©¦  ©¦  input.txt
+©¦  ©¦  nmap.pkl
+©¦  ©¦  without_port.txt
+©¦  ©¦      
+©¦  ©À©¤unique_edges
+©¦  ©¦      reassigned_edges.txt
+©¦  ©¦      reassigned_edges_boxplot.png
+©¦  ©¦      reassigned_edges_wordcloud.png
+©¦  ©¦      unique_edges_file.txt
+©¦  ©¦      
+©¦  ©¸©¤unique_pairs
+©¦          reassigned_pairs.txt
+©¦          reassigned_pairs_boxplot.png
+©¦          reassigned_pairs_wordcloud.png
+©¦          unique_pairs_file.txt
+©¦          
+©À©¤Graph_building
+©¦      centrality_boxplot.png
+©¦      graph_generate.py
+©¦      reduced graph.png
+©¦      
+©À©¤Pre_processing
+©¦  	Calculate.py
+©¦  	load_info.py
+©¦  	port_scan.py    
+©¸©¤
+        

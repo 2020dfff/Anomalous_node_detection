@@ -27,9 +27,9 @@ for key, values in sorted(results.items(), key=lambda item: len(item[1]), revers
     print(key, len(values))
 
 # Get the lengths of the values sets
-# lengths = [len(values) for values in results.values()]
-# fig, ax = plt.subplots()
-# ax.boxplot(lengths)
-# ax.set_ylabel('Length of values')
-# plt.show()
-# fig.savefig(DST + '/' + "_portscan_boxplot.png")
+lengths = [len(values) for values in results.values()]
+fig, ax = plt.subplots()
+ax.boxplot(lengths)
+ax.set_ylabel('Length of values')
+plt.show()
+fig.savefig(DST + '/' + "_portscan_boxplot.png")
