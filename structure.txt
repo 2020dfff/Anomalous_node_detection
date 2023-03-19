@@ -1,14 +1,24 @@
-
-©¦ Structure 03/10/2023
-©¦
+©¦ Structure 03/17/2023
 ©¦          
 ©À©¤Data_demo
 ©¦  ©¦  info.txt
 ©¦  ©¦  input.txt
 ©¦  ©¦  nmap.pkl
 ©¦  ©¦  without_port.txt
+©¦  ©¦  
+©¦  ©À©¤port_scan_fig
+©¦  ©¦      portscan_boxplot.png
+©¦  ©¦      portscan_scatterplot.png
+©¦  ©¦      portscan_violinplot.png
+©¦  ©¦      
+©¦  ©À©¤test
+©¦  ©¦      input_demo.txt
+©¦  ©¦      input_partial.txt
+©¦  ©¦      output.txt
 ©¦  ©¦      
 ©¦  ©À©¤unique_edges
+©¦  ©¦      info_G.txt
+©¦  ©¦      info_H.txt
 ©¦  ©¦      reassigned_edges.txt
 ©¦  ©¦      reassigned_edges_boxplot.png
 ©¦  ©¦      reassigned_edges_wordcloud.png
@@ -21,13 +31,17 @@
 ©¦          unique_pairs_file.txt
 ©¦          
 ©À©¤Graph_building
-©¦      centrality_boxplot.png
+©¦      centrality_boxplot_G.png
+©¦      centrality_boxplot_H.png
 ©¦      graph_generate.py
-©¦      reduced graph.png
+©¦      path.png
+©¦      test.py
 ©¦      
 ©À©¤Pre_processing
-©¦  	Calculate.py
-©¦  	load_info.py
-©¦  	port_scan.py    
-©¸©¤
-        
+©¦  ©¦  Calculate.py
+©¦  ©¦  load_info.py
+©¦  ©¦  port_scan.py
+©¦    
+©À©¤Node_analysis
+
+

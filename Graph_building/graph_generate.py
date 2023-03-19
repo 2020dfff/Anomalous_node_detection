@@ -1,6 +1,7 @@
 import networkx as nx
 from tqdm import tqdm
 from multiprocessing import Pool, cpu_count
+from functools import partial
 import csv
 import matplotlib.pyplot as plt
 
@@ -110,7 +111,7 @@ def compute_soc(g):
     soc = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node in g.nodes():
-            soc[node] = nx.closeness_centrality(g, u=node)
+            soc[node] = nx.second_order_centrality(g)
             pbar.update(1)
     return soc
 
@@ -120,7 +121,7 @@ def compute_ecc(g):
     ecc = {}
     with tqdm(total=len(g.nodes())) as pbar:
         for node in g.nodes():
-            ecc[node] = nx.closeness_centrality(g, u=node)
+            ecc[node] = nx.eccentricity(g, v=node)
             pbar.update(1)
     return ecc
 
@@ -143,40 +144,41 @@ if __name__ == '__main__':
     # compute betweenness centrality in parallel
     compute_betweenness_centrality(H)
     # draw a boxplot with bc and dc
-    bc_dc_boxplot(G)
+    bc_dc_boxplot(H)
 
     # compute closeness centrality in parallel
-    with Pool(cpu_count()) as p:
-        closeness = p.apply(compute_closeness_centrality, args=(H,))
-    print("Top 10 nodes by closeness centrality:\n")  # print top 10 nodes by closeness centrality
-    top_closes = sorted(closeness.items(), key=lambda x: x[1], reverse=True)[:10]
-    for node, closeness in top_closes:
-        print(f"{node}: {closeness}", file=log)
-    print("===============================================", file=log)
+    # with Pool(cpu_count()) as p:
+    #     closeness = p.apply(compute_closeness_centrality, args=(H,))
+    # print("Top 10 nodes by closeness centrality:\n", file=log)  # print top 10 nodes by closeness centrality
+    # top_closes = sorted(closeness.items(), key=lambda x: x[1], reverse=True)[:10]
+    # for node, closeness in top_closes:
+    #     print(f"{node}: {closeness}", file=log)
+    # print("===============================================", file=log)
 
     # compute second order centrality in parallel
-    with Pool(cpu_count()) as p:
-        soc = p.apply(compute_soc, args=(H,))
-    print("Top 10 nodes by second order centrality:\n")  # print top 10 nodes by second order centrality
-    top_socs = sorted(soc.items(), key=lambda x: x[1], reverse=True)[:10]
-    for node, soc in top_socs:
-        print(f"{node}: {soc}", file=log)
-    print("===============================================", file=log)
+    # with Pool(cpu_count()) as p:
+    #     soc = p.apply(compute_soc, args=(H,))
+    # # soc = compute_soc(H)
+    # print("Top 10 nodes by second order centrality:\n", file=log)  # print top 10 nodes by second order centrality
+    # top_socs = sorted(soc.items(), key=lambda x: x[1], reverse=True)[:10]
+    # for node, soc in top_socs:
+    #     print(f"{node}: {soc}", file=log)
+    # print("===============================================", file=log)
 
     # compute eccentricity
     with Pool(cpu_count()) as p:
         ecc = p.apply(compute_ecc, args=(H,))
-    print("Top 10 nodes by eccentricity:\n")  # print top 10 nodes by second order centrality
+    print("Top 10 nodes by eccentricity:\n", file=log)  # print top 10 nodes by second order centrality
     top_eccs = sorted(ecc.items(), key=lambda x: x[1], reverse=True)[:10]
     for node, ecc in top_eccs:
         print(f"{node}: {ecc}", file=log)
     print("===============================================", file=log)
-
-    # compute radius and center
-    with Pool(cpu_count()) as p:
-        radius, center = p.apply(compute_radius_center, args=(H,))
-    print("The radius of the graph is:", radius, file=log)
-    print("The center of the graph is", center, file=log)
+    #
+    # # compute radius and center
+    # with Pool(cpu_count()) as p:
+    #     radius, center = p.apply(compute_radius_center, args=(H,))
+    # print("The radius of the graph is:", radius, file=log)
+    # print("The center of the graph is", center, file=log)
 
     # Remove nodes with degree less than x
     # low_degree_nodes = [node for node, degree in dict(DG.degree()).items() if degree < 300]
