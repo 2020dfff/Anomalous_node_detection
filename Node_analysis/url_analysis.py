@@ -7,15 +7,17 @@ abnormal_node_file = DST + "/abnormal_graph_features.txt"
 
 # Load JSON data from file
 urls = {}
-with open(abnormal_node_file, 'r') as f:
+with open(top_dstport_file, 'r') as f:
     data = f.readlines()
+    lines = [line for line in data if line.strip()]
 
     # Iterate over JSON objects in file
-    for line in data:
+    for line in lines:
         # Parse JSON object
         obj = json.loads(line.strip())
         # Extract request URL from object
-        request_url = obj['_source']['request_url']
+        request_url = obj.get("_source", {}).get("request_url", "")
+        # request_url = obj['_source']['request_url']
         # Increment count for URL in dictionary
         if request_url in urls:
             urls[request_url] += 1
@@ -24,4 +26,6 @@ with open(abnormal_node_file, 'r') as f:
 
 # Print out counts for each URL
 for url, count in urls.items():
+    # urls = sorted(urls.items(), key=lambda x: x[1], reverse=True)
+    # print(urls)
     print(f"{url}: {count}")

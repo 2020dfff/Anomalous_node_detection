@@ -5,6 +5,7 @@
 
 import os
 import json
+from datetime import datetime
 import pickle
 import pandas as pd
 from wordcloud import WordCloud
@@ -19,6 +20,7 @@ DST = "../data_demo"
 
 input_file = DST + "/input.txt"
 abnormal_file = DST + "/without_port.txt"
+hour_split = DST + "/hour_split"
 unique_edges_file = DST + "/unique_edges/unique_edges_file.txt"
 unique_pairs_file = DST + "/unique_pairs/unique_pairs_file.txt"  # re-organize the file, also make edge unique
 reassign_edges_file = DST + "/unique_edges/reassigned_edges.txt"
@@ -26,44 +28,70 @@ reassign_pairs_file = DST + "/unique_pairs/reassigned_pairs.txt"  # give the ip 
 log = open(DST + '/info.txt', mode='w', encoding='utf-8')
 
 
-def preprocess(infile, outfile1, outfile2, origin_out):
-    # delete the blank line in the dataset to guarantee the function works
-    edges = set()
-    pairs = set()
-    with open(infile, "r") as file:
-        lines = file.readlines()
-    lines = [line for line in lines if line.strip()]
-    with open(outfile1, "w") as f_edge_out, \
-            open(outfile2, "w") as f_pair_out, \
-            open(origin_out, "w") as origin_data_out:
-        f_edge_out.write("proto_name,srcip,dstip,srcport,dstport\n")
-        f_pair_out.write("proto_name,srcip,dstip,srcport,dstport\n")
+def preprocess(infile, outdir, origin_out):
+    # Create output directory if it doesn't exist
+    if not os.path.exists(outdir):
+        os.makedirs(outdir)
 
-        # extract edges and pairs from the data
+    # Extract edges and pairs from the data, and write to hourly files
+    edge_files = {}
+    pair_files = {}
+    with open(infile, "r") as f, open(origin_out, "w") as origin_data_out:
+        # Delete blank lines from input file
+        lines = f.readlines()
+        lines = [line for line in lines if line.strip()]
+
         for line in lines:
-            json_line = json.loads(f"{line}\n")
+            json_line = json.loads(line)
+            timestamp = int(json_line["_source"]["timestamp"]) // 1000  # Convert to seconds
 
+            # Get hour from timestamp
+            hour = datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d_%H')
+
+            # Create directory for this hour if it doesn't exist
+            hour_dir = os.path.join(outdir, hour)
+            if not os.path.exists(hour_dir):
+                os.makedirs(hour_dir)
+
+            # Extract edge and pair information
             proto_name = json_line.get("_source", {}).get("proto_name", "")
             srcip = json_line.get("_source", {}).get("srcip", "")
             dstip = json_line.get("_source", {}).get("dstip", "")
             srcport = json_line.get("_source", {}).get("srcport", "")
             dstport = json_line.get("_source", {}).get("dstport", "")
 
+            # Get the abnormal port record
             if (srcport == "") or (dstport == ""):
                 origin_data_out.write(line)
 
-            # add unique edges and pairs to sets
+            # Get or create file handles and edge/pair sets for this hour
+            if hour not in edge_files:
+                edge_files[hour] = open(os.path.join(hour_dir, f"unique_edges_{hour}.txt"), "w")
+                edge_files[hour].write("proto_name,srcip,dstip,srcport,dstport\n")
+                edge_files[hour].edges_seen = set()
+            if hour not in pair_files:
+                pair_files[hour] = open(os.path.join(hour_dir, f"unique_pairs_{hour}.txt"), "w")
+                pair_files[hour].write("proto_name,srcip,dstip,srcport,dstport\n")
+                pair_files[hour].pairs_seen = set()
+
+            # Write unique edges and pairs to files
             edge = (srcip, dstip, srcport, dstport)
             pair = (srcip, dstip)
-            if edge not in edges:
-                f_edge_out.write(f"{proto_name},{srcip},{dstip},{srcport},{dstport}\n")
-                edges.add(edge)
+            if edge not in edge_files[hour].edges_seen:
+                edge_files[hour].write(f"{proto_name},{srcip},{dstip},{srcport},{dstport}\n")
+                edge_files[hour].edges_seen.add(edge)
+            if pair not in pair_files[hour].pairs_seen:
+                pair_files[hour].write(f"{proto_name},{srcip},{dstip},{srcport},{dstport}\n")
+                pair_files[hour].pairs_seen.add(pair)
 
-            if pair not in pairs:
-                f_pair_out.write(f"{proto_name},{srcip},{dstip},{srcport},{dstport}\n")
-                pairs.add(pair)
+        # Write processed lines to origin_out
+        origin_data_out.writelines(lines)
 
-    return edges, pairs
+    # Close file handles
+    for f in edge_files.values():
+        f.close()
+    for f in pair_files.values():
+        f.close()
 
 
 def split():
@@ -72,7 +100,7 @@ def split():
         os.makedirs(DST + "/unique_edges")
     if not os.path.exists(DST + "/unique_pairs"):
         os.makedirs(DST + "/unique_pairs")
-    preprocess(input_file, unique_edges_file, unique_pairs_file, abnormal_file)
+    preprocess(input_file, hour_split, abnormal_file)
 
     # Re-assign the ip with number
     nmap = {}
