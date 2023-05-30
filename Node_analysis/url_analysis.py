@@ -1,7 +1,7 @@
 import json
 
-DST = "../data_demo/abnormal_raw_data"
-input_file = "../data_demo/input.txt"
+DST = "../done_dataset/0213/abnormal_raw_data"
+input_file = "../1/aella-adr-abnormal/2022-02-13(1644710400000)~2022-02-14(1644796800000)-aella-adr.txt"
 top_dstport_file = DST + "/top_dstport.txt"
 abnormal_node_file = DST + "/abnormal_graph_features.txt"
 

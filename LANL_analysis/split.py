@@ -10,9 +10,9 @@ from tqdm import tqdm
 # Please obtain the LANL data set from:
 # https://csr.lanl.gov/data/cyber1/
 
-RED = '../data/lanl/redteam.txt'  # Location of redteam.txt
-SRC = '../data/lanl/auth.txt'  # Location of auth.txt
-DST = '../data/lanl_output/tmp/auth_'  # Directory to save output files to
+RED = '../lanl_dataset/lanl_input/redteam.txt'  # Location of redteam.txt
+SRC = '../lanl_dataset/lanl_input/auth.txt'  # Location of auth.txt
+DST = '../lanl_dataset/lanl_output/auth_'  # Directory to save output files to
 
 assert RED and SRC and DST, 'Please download the LANL data set, and mark in the code where it is:\nLines 13-15 of /lanl_experiments/loaders/split.py'
 
@@ -76,13 +76,13 @@ def split():
     line = f_in.readline()
 
     nmap = {}
-    nid = [0]
+    nid = [1]
 
     def get_or_add(n):
         if n not in nmap:
             nmap[n] = nid[0]
             nid[0] += 1
-            nid[0] += 1
+            # nid[0] += 1
 
         return nmap[n]
 

@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 
-DST = "../data_demo/abnormal_raw_data"
+DST = "../1/aella-adr-abnormal/abnormal_raw_data"
 input_file = "../data_demo/input.txt"
 top_dstport_file = DST + "/top_dstport.txt"
 abnormal_node_file = DST + "/abnormal_graph_features.txt"
@@ -10,7 +10,7 @@ abnormal_node_file = DST + "/abnormal_graph_features.txt"
 # Load JSON data from file
 timestamps = []
 dstports = []
-with open(abnormal_node_file, 'r') as f:
+with open(top_dstport_file, 'r') as f:
     data = f.readlines()
 
     # Iterate over JSON objects in file

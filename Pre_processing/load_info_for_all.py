@@ -1,31 +1,9 @@
-"""
-    Created on: 2023-01-10
-    Author: Yang Fei
-"""
-
 import os
 import json
 import pickle
+import glob
 import pandas as pd
 from datetime import datetime
-from wordcloud import WordCloud
-import matplotlib.pyplot as plt
-import numpy as np
-from PIL import Image
-
-# from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-# from tqdm import tqdm
-
-DST = "../done_dataset/0213"
-
-input_file = DST + "/2022-02-13(1644710400000)~2022-02-14(1644796800000)-aella-adr.txt"
-abnormal_file = DST + "/without_port.txt"
-hour_split = DST + "/hour_split"
-unique_edges_file = DST + "/unique_edges/unique_edges_file.txt"
-unique_pairs_file = DST + "/unique_pairs/unique_pairs_file.txt"  # re-organize the file, also make edge unique
-reassign_edges_file = DST + "/unique_edges/reassigned_edges.txt"
-reassign_pairs_file = DST + "/unique_pairs/reassigned_pairs.txt"  # give the ip address new number
-log = open(DST + '/info.txt', mode='w', encoding='utf-8')
 
 
 def preprocess(infile, outdir, origin_out):
@@ -92,6 +70,7 @@ def preprocess(infile, outdir, origin_out):
         f.close()
     for f in pair_files.values():
         f.close()
+
 
 def split():
     # do the initialization job to pick out key information
@@ -163,8 +142,9 @@ def split():
 def calculate(target_file, nmap_rev):
     df = pd.read_csv(target_file, header=None)
     # Basic information about the file
-    print("The name of this file is: %s\n=====================================================================" % str(
-        target_file), file=log)
+    print(
+        "The name of this file is: %s\n=====================================================================" % str(
+            target_file), file=log)
     total_edge = 0
     total_node = 0
     edge_without_src_port = 0
@@ -234,32 +214,29 @@ def calculate(target_file, nmap_rev):
         key_ips = [nmap_rev[node] for node in key_nodes]
         print("Abnormal ports generate from multiple unique ips:\n", key_ips, file=log)
 
-        # # Plot the wordcloud of key_ips results in abnormal ports
-        # ip_addresses = [nmap_rev[node] for node in counts.index.tolist()]
-        # ip_counts = counts.values.tolist()
-        # print(list(zip(ip_addresses, ip_counts)))
-        # wc = WordCloud(background_color=None, mode='RGBA', max_words=100, width=400, height=400, min_font_size=5,
-        #                max_font_size=150,
-        #                collocations=False, scale=20, margin=2, prefer_horizontal=1, mask=np.array(Image.open('1.png')))
-        # ip_count_dict = dict(zip(ip_addresses, ip_counts))
-        # wc.generate_from_frequencies(ip_count_dict)
-        # plt.figure(figsize=(10, 5))
-        # plt.imshow(wc, interpolation='bilinear')
-        # plt.axis('off')
-        # wc.to_file(str(os.path.splitext(target_file)[0]) + "_wordcloud.png")
-        # plt.show()
-
-    # Plot and show the boxplot in each situation
-    # data = [counts_in.values, counts_out.values]
-    # fig, ax = plt.subplots(figsize=(10, 6))
-    # ax.boxplot(data)
-    # ax.set_xlabel('Data Type')
-    # ax.set_ylabel('Number of Packets')
-    # ax.set_xticklabels(['Ingress', 'Egress'])
-    # plt.show()
-    # fig.savefig(str(os.path.splitext(target_file)[0]) + "_boxplot.png")
-
 
 if __name__ == '__main__':
-    split()
-    log.close()
+    # get list of all directories containing the input files
+    input_dirs = [os.path.join("../dataset", d) for d in os.listdir("../dataset") if
+                  os.path.isdir(os.path.join("../dataset", d)) and not d.startswith('.')]
+    print(input_dirs)
+
+    for input_dir in input_dirs:
+        # set DST to the current directory
+        DST = input_dir
+        # locate the input files
+        input_files = glob.glob(os.path.join(DST, "*.txt"))
+        input_file = input_files[0]
+        print(input_file)
+
+        hour_split = DST + "/hour_split"
+        abnormal_file = DST + "/without_port.txt"
+        unique_edges_file = DST + "/unique_edges/unique_edges_file.txt"
+        unique_pairs_file = DST + "/unique_pairs/unique_pairs_file.txt"  # re-organize the file, also make edge unique
+        reassign_edges_file = DST + "/unique_edges/reassigned_edges.txt"
+        reassign_pairs_file = DST + "/unique_pairs/reassigned_pairs.txt"  # give the ip address new number
+        log = open(DST + '/info.txt', mode='w', encoding='utf-8')
+        split()
+        log.close()
+
+

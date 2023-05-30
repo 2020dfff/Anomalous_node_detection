@@ -3,8 +3,8 @@ from collections import defaultdict
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-DST = "../data_demo"
-input_file = DST + "/input.txt"
+DST = "../1/aella-adr-abnormal"
+input_file = DST + "/2022-02-13(1644710400000)~2022-02-14(1644796800000)-aella-adr.txt"
 src_results = defaultdict(set)
 dst_results = defaultdict(set)
 
